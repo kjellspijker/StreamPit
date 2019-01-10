@@ -1,10 +1,10 @@
 package tk.sliomere.streampit
 
-import android.support.v7.widget.CardView
-import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
+import androidx.recyclerview.widget.RecyclerView
 
 class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
@@ -27,7 +27,6 @@ class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     fun bindViewHolder() {
         title.setBackgroundColor(card.color)
         icon.setBackgroundColor(card.color)
-        cardView.setBackgroundColor(card.color)
     }
 
 }

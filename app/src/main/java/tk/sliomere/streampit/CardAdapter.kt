@@ -1,9 +1,9 @@
 package tk.sliomere.streampit
 
 import android.content.Context
-import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 
 class CardAdapter(var context: Context, var cardList: List<Card>) : RecyclerView.Adapter<CardViewHolder>() {
 
