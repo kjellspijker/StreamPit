@@ -1,6 +1,7 @@
 package tk.sliomere.streampit
 
-import android.graphics.Color
+import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Point
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -13,9 +14,12 @@ import android.view.Display
 import android.view.Menu
 import android.view.MenuItem
 import kotlinx.android.synthetic.main.activity_main.*
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
 
+    private val PREF_NAME = "STREAMPIT"
+    private val PREF_CARDS_JSON = "CARD_JSON"
     private lateinit var recyclerView: RecyclerView
     private lateinit var cardList: ArrayList<Card>
     private lateinit var adapter: CardAdapter
@@ -41,11 +45,36 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun prepareCards() {
-        for (i in 0..20) {
-            cardList.add(Card("Card $i", resources.getColor(R.color.cardPrimary, theme)))
+        val prefs: SharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().remove(PREF_CARDS_JSON).commit()
+        if (!prefs.contains(PREF_CARDS_JSON)) {
+            //First run
+            val editor = prefs.edit()
+            editor.putString(PREF_CARDS_JSON, "{\"cards\": [" +
+                        "{" +
+                            "\"name\": \"GO LIVE\"," +
+                            "\"color\": \"#FF4B367C\"" +
+                        "}," +
+                        "{" +
+                            "\"name\": \"TOGGLE REC\"," +
+                            "\"color\": \"#FFD50000\"" +
+                        "}," +
+                        "{" +
+                            "\"name\": \"DESKTOP AUDIO\"," +
+                            "\"color\": \"#FF2E383F\"" +
+                        "}" +
+                    "]}")
+            editor.commit()
+        }
+        val json = JSONObject(prefs.getString(PREF_CARDS_JSON, "{}"))
+
+        val cards = json.getJSONArray("cards")
+        for (i in 0 until cards.length()) {
+            val card = cards.getJSONObject(i)
+            cardList.add(Card(card))
         }
 
-        cardList[0].color = Color.parseColor("#4B367C")
+        Log.d("StreamPit", "\n" + cardList[0].toJSON().toString(4))
 
         adapter.notifyDataSetChanged()
     }
