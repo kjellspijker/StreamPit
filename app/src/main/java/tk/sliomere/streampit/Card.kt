@@ -1,30 +1,39 @@
 package tk.sliomere.streampit
 
+import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import org.json.JSONObject
 
-class Card (var name: String, var color: Int) : Parcelable {
-    constructor(jsonObject: JSONObject) : this(jsonObject.getString("name")!!, Color.parseColor(jsonObject.getString("color")!!))
+class Card(val id: String, var name: String, var color: Int) : Parcelable {
+    constructor(id: String, jsonObject: JSONObject) : this(id, jsonObject.getString("name")!!, Color.parseColor(jsonObject.getString("color")!!))
 
-    fun onClickListener() {
+    fun onClickListener(context: Context) {
         Log.d("StreamPit", "Click Listener")
+        if (MainActivity.removingCard) {
+            val intent = Intent(MainActivity.eventRemoveCard)
+            intent.putExtra(MainActivity.cardIDExtra, id)
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+        }
     }
 
-    fun onLongClickListener() {
+    fun onLongClickListener(context: Context) {
         Log.d("StreamPit", "Long Click Listener")
     }
 
     fun toJSON(): JSONObject {
         val json = JSONObject()
         json.put("name", name)
-        json.put("color", Integer.toHexString(color))
+        json.put("id", id)
+        json.put("color", "#" + Integer.toHexString(color))
         return json
     }
 
-    constructor(parcel: Parcel) : this(parcel.readString()!!, parcel.readInt()) {
+    constructor(parcel: Parcel) : this(parcel.readString()!!, parcel.readString()!!, parcel.readInt()) {
 
     }
 
@@ -33,6 +42,7 @@ class Card (var name: String, var color: Int) : Parcelable {
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeString(id)
         dest.writeString(name)
         dest.writeInt(color)
     }

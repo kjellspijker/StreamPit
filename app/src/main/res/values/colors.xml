@@ -5,4 +5,5 @@
     <color name="colorAccent">#7b5cc2</color>
     <color name="colorRedAccent">#d50000</color>
     <color name="cardPrimary">#2e383f</color>
+    <color name="colorRemovingCards">#d50000</color>
 </resources>

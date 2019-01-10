@@ -15,11 +15,11 @@ class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     init {
         cardView.setOnClickListener { v ->
-            card.onClickListener()
+            card.onClickListener(v.context)
         }
 
         cardView.setOnLongClickListener { v ->
-            card.onLongClickListener()
+            card.onLongClickListener(v.context)
             true
         }
     }

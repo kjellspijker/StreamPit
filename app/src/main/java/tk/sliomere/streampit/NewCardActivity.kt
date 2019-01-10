@@ -50,7 +50,7 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_save -> {
-                val card = Card(titleEditText.text.toString(), color)
+                val card = Card((MainActivity.cardIDCounter++).toString(), titleEditText.text.toString(), color)
 //                MainActivity.addCard(card)
                 val intent = Intent(MainActivity.eventDataSetChanged)
                 intent.putExtra(MainActivity.cardExtra, card)

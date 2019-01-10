@@ -6,8 +6,15 @@
     <item
         android:id="@+id/action_new_card"
         android:icon="@android:drawable/ic_menu_add"
-        android:orderInCategory="50"
+        android:orderInCategory="25"
         android:title="@string/add_new_card"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_del_card"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:orderInCategory="50"
+        android:title="@string/remove_card"
         app:showAsAction="ifRoom" />
 
     <item

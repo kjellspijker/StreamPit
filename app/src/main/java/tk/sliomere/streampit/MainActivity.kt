@@ -3,11 +3,14 @@ package tk.sliomere.streampit
 import android.content.*
 import android.content.res.Configuration
 import android.graphics.Point
+import android.graphics.PorterDuff
 import android.os.Bundle
+import android.util.Log
 import android.util.TypedValue
 import android.view.Display
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -19,10 +22,15 @@ import org.json.JSONObject
 class MainActivity : AppCompatActivity() {
 
     companion object {
+        var cardIDCounter = 0
         const val cardExtra = "CARDEXTRA"
+        const val cardIDExtra = "CARDID"
         const val eventDataSetChanged = "NOTIFYDATASETCHANGED"
+        const val eventRemoveCard = "REMOVECARD"
+        var removingCard = false
     }
 
+    private lateinit var jsonCardList: JSONObject
     private lateinit var cardList: ArrayList<Card>
     private lateinit var localBroadcastManager: LocalBroadcastManager
     private val PREF_NAME = "STREAMPIT"
@@ -31,11 +39,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var decor: RecyclerView.ItemDecoration
     private var columnCount: Int = 2
+    private lateinit var delMenuItem: MenuItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+
+        jsonCardList = JSONObject("{\"cards\": {}}")
 
         recyclerView = findViewById(R.id.recycler_view)
         cardList = ArrayList()
@@ -45,11 +56,29 @@ class MainActivity : AppCompatActivity() {
 
         localBroadcastManager.registerReceiver(object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent) {
+                /*
+                 * Adding a new card to the list
+                 */
                 val card = intent.getParcelableExtra<Card>(cardExtra)
                 cardList.add(card)
                 adapter.notifyDataSetChanged()
+
+                saveCards()
             }
         }, IntentFilter(eventDataSetChanged))
+
+        localBroadcastManager.registerReceiver(object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent) {
+                val cardID = intent.getStringExtra(MainActivity.cardIDExtra)
+                cardList.remove(cardList[cardID.toInt()])
+                adapter.notifyDataSetChanged()
+                MainActivity.removingCard = false
+                Toast.makeText(context, resources.getString(R.string.card_removed_toast), Toast.LENGTH_SHORT).show()
+                delMenuItem.icon.setColorFilter(resources.getColor(android.R.color.white, theme), PorterDuff.Mode.SRC_ATOP)
+
+                saveCards()
+            }
+        }, IntentFilter(eventRemoveCard))
 
         calculateColumns()
 
@@ -63,6 +92,17 @@ class MainActivity : AppCompatActivity() {
         prepareCards()
     }
 
+    private fun saveCards() {
+        val cards = jsonCardList.getJSONObject("cards")
+
+        for (card in cardList) {
+            cards.put(card.id, card.toJSON())
+        }
+
+        val prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putString(PREF_CARDS_JSON, jsonCardList.toString()).apply()
+    }
+
     /**
      * If this is the first run (ergo, no preferences yet available), store the default cards in the SharedPreferences
      * Then the function retrieves the cards from prefs and loads them into the cardList
@@ -73,28 +113,34 @@ class MainActivity : AppCompatActivity() {
         if (!prefs.contains(PREF_CARDS_JSON)) {
             //First run
             val editor = prefs.edit()
-            editor.putString(PREF_CARDS_JSON, "{\"cards\": [" +
-                        "{" +
+            editor.putString(PREF_CARDS_JSON, "{\"cards\": {" +
+                        "\"0\": {" +
                             "\"name\": \"GO LIVE\"," +
                             "\"color\": \"#FF4B367C\"" +
                         "}," +
-                        "{" +
+                        "\"1\": {" +
                             "\"name\": \"TOGGLE REC\"," +
                             "\"color\": \"#FFD50000\"" +
                         "}," +
-                        "{" +
+                        "\"2\": {" +
                             "\"name\": \"DESKTOP AUDIO\"," +
                             "\"color\": \"#FF2E383F\"" +
                         "}" +
-                    "]}")
+                    "}}")
             editor.commit()
         }
         val json = JSONObject(prefs.getString(PREF_CARDS_JSON, "{}"))
+        Log.d("StreamPit", json.toString(4))
 
-        val cards = json.getJSONArray("cards")
-        for (i in 0 until cards.length()) {
-            val card = cards.getJSONObject(i)
-            cardList.add(Card(card))
+        val cards = json.getJSONObject("cards")
+        for (id in cards.keys()) {
+            val card = cards.getJSONObject(id)
+            Log.d("StreamPit", card.toString(4))
+            val cardObject = Card(id, card)
+            cardList.add(cardObject)
+            if (cardObject.id.toInt() >= cardIDCounter) {
+                cardIDCounter = cardObject.id.toInt() + 1
+            }
         }
 
         adapter.notifyDataSetChanged()
@@ -121,6 +167,15 @@ class MainActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+
+        for (i in 0 until menu.size()) {
+            if (menu.getItem(i).itemId == R.id.action_del_card) {
+                Log.d("StreamPit", "item found")
+                delMenuItem = menu.getItem(i)
+                break
+            }
+        }
+
         return true
     }
 
@@ -131,6 +186,18 @@ class MainActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_new_card -> {
                 startActivity(Intent(this, NewCardActivity::class.java))
+                true
+            }
+            R.id.action_del_card -> {
+                if (!removingCard) {
+                    Toast.makeText(this, resources.getString(R.string.removing_cards_toast), Toast.LENGTH_SHORT).show()
+                    item.icon.setColorFilter(resources.getColor(R.color.colorRemovingCards, theme), PorterDuff.Mode.SRC_ATOP)
+                    MainActivity.removingCard = true
+                } else {
+                    Toast.makeText(this, resources.getString(R.string.removing_cards_cancelled_toast), Toast.LENGTH_SHORT).show()
+                    item.icon.setColorFilter(resources.getColor(android.R.color.white, theme), PorterDuff.Mode.SRC_ATOP)
+                    MainActivity.removingCard = false
+                }
                 true
             }
             R.id.action_settings -> true

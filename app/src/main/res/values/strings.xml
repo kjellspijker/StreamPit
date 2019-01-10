@@ -8,4 +8,8 @@
     <string name="choose_card_icon">Choose Card Icon</string>
     <string name="color_image_button">Color Image Button</string>
     <string name="choose_card_color">Choose Card Color</string>
+    <string name="remove_card">Remove Card</string>
+    <string name="card_removed_toast">Removed Card!</string>
+    <string name="removing_cards_toast">Removing cards!</string>
+    <string name="removing_cards_cancelled_toast">Removing cards cancelled</string>
 </resources>
