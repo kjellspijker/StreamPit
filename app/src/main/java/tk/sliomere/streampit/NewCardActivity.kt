@@ -16,9 +16,9 @@ import kotlinx.android.synthetic.main.activity_new_button.*
 
 class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
 
-    lateinit var titleEditText: TextInputEditText
-    lateinit var buttonIconImageBtn: ImageButton
-    lateinit var colorImageButton: ImageButton
+    private lateinit var titleEditText: TextInputEditText
+    private lateinit var buttonIconImageBtn: ImageButton
+    private lateinit var colorImageButton: ImageButton
     var color: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,7 +31,7 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
         buttonIconImageBtn = findViewById(R.id.button_icon_image_button)
         colorImageButton = findViewById(R.id.color_image_button)
 
-        colorImageButton.setOnClickListener { v: View? ->
+        colorImageButton.setOnClickListener { _: View? ->
                 ColorPickerDialog.newBuilder().setColor(resources.getColor(R.color.cardPrimary, this.theme)).show(this)
         }
 

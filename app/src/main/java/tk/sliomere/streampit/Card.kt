@@ -33,9 +33,7 @@ class Card(val id: String, var name: String, var color: Int) : Parcelable {
         return json
     }
 
-    constructor(parcel: Parcel) : this(parcel.readString()!!, parcel.readString()!!, parcel.readInt()) {
-
-    }
+    constructor(parcel: Parcel) : this(parcel.readString()!!, parcel.readString()!!, parcel.readInt())
 
     override fun describeContents(): Int {
         return 0

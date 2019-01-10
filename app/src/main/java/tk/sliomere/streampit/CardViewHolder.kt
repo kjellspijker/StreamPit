@@ -10,7 +10,7 @@ class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
     var title: TextView = view.findViewById(R.id.card_title)
     var icon: ImageView = view.findViewById(R.id.card_image_view)
-    var cardView: CardView = view.findViewById(R.id.card_card_view)
+    private var cardView: CardView = view.findViewById(R.id.card_card_view)
     lateinit var card: Card
 
     init {
