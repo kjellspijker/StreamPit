@@ -1,6 +1,9 @@
 package tk.sliomere.streampit
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -13,23 +16,29 @@ import com.google.android.material.textfield.TextInputEditText
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.android.synthetic.main.activity_new_button.*
+import tk.sliomere.streampit.dialog.DialogFragment
 import java.util.*
 import kotlin.random.Random
 
 class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
 
+    companion object {
+        const val eventDialogClosed = "DIALOGCLOSED"
+        val availableIcons: ArrayList<String> = ArrayList()
+        var color: Int = -1
+    }
+
     private lateinit var icon: String
     private lateinit var titleEditText: TextInputEditText
     private lateinit var buttonIconImageBtn: ImageButton
     private lateinit var colorImageButton: ImageButton
-    private val availableIcons: ArrayList<String> = ArrayList()
-    var color: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_new_button)
         setSupportActionBar(toolbar)
 
+        availableIcons.clear()
         for (field in R.drawable::class.java.fields) {
             if (field.name.startsWith("icon_")) {
                 Log.d("StreamPit", field.name)
@@ -43,15 +52,22 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
         buttonIconImageBtn = findViewById(R.id.button_icon_image_button)
         colorImageButton = findViewById(R.id.color_image_button)
 
-        buttonIconImageBtn.setOnClickListener{ _: View? ->
+        buttonIconImageBtn.setOnClickListener { _: View? ->
             icon = availableIcons[Random.nextInt(0, availableIcons.size)]
             Log.d("StreamPit", icon)
-//            TODO("Implement choosing of the icons")
+            DialogFragment().show(supportFragmentManager, "ChooseIconDialog")
         }
 
         colorImageButton.setOnClickListener { _: View? ->
-                ColorPickerDialog.newBuilder().setColor(resources.getColor(R.color.cardPrimary, this.theme)).show(this)
+            ColorPickerDialog.newBuilder().setColor(resources.getColor(R.color.cardPrimary, this.theme)).show(this)
         }
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                icon = intent!!.getStringExtra(DialogFragment.extraIconName)
+                buttonIconImageBtn.setImageDrawable(resources.getDrawable(resources.getIdentifier(icon, "drawable", "tk.sliomere.streampit"), theme))
+            }
+        }, IntentFilter(eventDialogClosed))
 
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
@@ -86,7 +102,7 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
     }
 
     override fun onColorSelected(dialogId: Int, color: Int) {
-        this.color = color
+        NewCardActivity.color = color
         Log.d("StreamPit", "Color set to: #" + Integer.toHexString(color))
         buttonIconImageBtn.setBackgroundColor(color)
         colorImageButton.setBackgroundColor(color)

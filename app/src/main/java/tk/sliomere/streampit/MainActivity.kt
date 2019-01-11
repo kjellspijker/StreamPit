@@ -36,13 +36,14 @@ class MainActivity : AppCompatActivity() {
         const val PREF_PORT = "PORTNUMBER"
     }
 
+    private var columnCount: Int = 2
     private lateinit var jsonCardList: JSONObject
-    private lateinit var cardList: ArrayList<Card>
+    private lateinit var cardList: HashMap<Int, Card>
+    private lateinit var idList: ArrayList<Int>
     private lateinit var localBroadcastManager: LocalBroadcastManager
     private lateinit var adapter: CardAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var decor: RecyclerView.ItemDecoration
-    private var columnCount: Int = 2
     private lateinit var delMenuItem: MenuItem
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -53,8 +54,9 @@ class MainActivity : AppCompatActivity() {
         jsonCardList = JSONObject("{\"cards\": {}}")
 
         recyclerView = findViewById(R.id.recycler_view)
-        cardList = ArrayList()
-        adapter = CardAdapter(this, cardList)
+        cardList = HashMap()
+        idList = ArrayList()
+        adapter = CardAdapter(this, idList, cardList)
 
         localBroadcastManager = LocalBroadcastManager.getInstance(this)
 
@@ -64,7 +66,8 @@ class MainActivity : AppCompatActivity() {
                  * Adding a new card to the list
                  */
                 val card = intent.getParcelableExtra<Card>(cardExtra)
-                cardList.add(card)
+                idList.add(card.id.toInt())
+                cardList[card.id.toInt()] = card
                 adapter.notifyDataSetChanged()
 
                 saveCards()
@@ -74,7 +77,8 @@ class MainActivity : AppCompatActivity() {
         localBroadcastManager.registerReceiver(object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent) {
                 val cardID = intent.getStringExtra(MainActivity.cardIDExtra)
-                cardList.remove(cardList[cardID.toInt()])
+                idList.remove(cardID.toInt())
+                cardList.remove(cardID.toInt())
                 adapter.notifyDataSetChanged()
                 MainActivity.removingCard = false
                 Toast.makeText(context, resources.getString(R.string.card_removed_toast), Toast.LENGTH_SHORT).show()
@@ -113,7 +117,8 @@ class MainActivity : AppCompatActivity() {
     private fun saveCards() {
         val cards = jsonCardList.getJSONObject("cards")
 
-        for (card in cardList) {
+        for (id in idList) {
+            val card = cardList[id]!!
             cards.put(card.id, card.toJSON())
         }
 
@@ -123,9 +128,10 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * If this is the first run (ergo, no preferences yet available), store the default cards in the SharedPreferences
-     * Then the function retrieves the cards from prefs and loads them into the cardList
+     * Then the function retrieves the cards from prefs and loads them into the dialogCardList
      */
     private fun prepareCards() {
+        idList.clear()
         cardList.clear()
         val prefs: SharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 //        prefs.edit().remove(PREF_CARDS_JSON).commit()
@@ -159,7 +165,8 @@ class MainActivity : AppCompatActivity() {
             val card = cards.getJSONObject(id)
             val cardObject = Card(id, card)
             Log.d("StreamPit", cardObject.icon)
-            cardList.add(cardObject)
+            idList.add(cardObject.id.toInt())
+            cardList[cardObject.id.toInt()] = cardObject
             if (cardObject.id.toInt() >= cardIDCounter) {
                 cardIDCounter = cardObject.id.toInt() + 1
             }
