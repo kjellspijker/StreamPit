@@ -9,8 +9,11 @@ import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import org.json.JSONObject
 
-class Card(val id: String, var name: String, var color: Int, var icon: String) : Parcelable {
-    constructor(id: String, jsonObject: JSONObject) : this(id, jsonObject.getString("name")!!, Color.parseColor(jsonObject.getString("color")!!), jsonObject.getString("icon"))
+class Card(val id: String, var name: String, var color: Int, var icon: String, var cardAction: CardAction) : Parcelable {
+
+    lateinit var vh: CardViewHolder
+
+    constructor(id: String, jsonObject: JSONObject) : this(id, jsonObject.getString("name")!!, Color.parseColor(jsonObject.getString("color")!!), jsonObject.getString("icon"), CardAction.valueOf(jsonObject.getString("cardAction")))
 
     fun onClickListener(context: Context) {
         Log.d("StreamPit", "Click Listener")
@@ -18,6 +21,14 @@ class Card(val id: String, var name: String, var color: Int, var icon: String) :
             val intent = Intent(MainActivity.eventRemoveCard)
             intent.putExtra(MainActivity.cardIDExtra, id)
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+        }
+
+        if (cardAction == CardAction.TOGGLE_MUTE) {
+            val args = JSONObject()
+            args.put("source", "Desktop Audio")
+            MainActivity.webSocketClient.sendMessage("ToggleMute",  args)
+
+            vh.toggleMute()
         }
     }
 
@@ -28,12 +39,13 @@ class Card(val id: String, var name: String, var color: Int, var icon: String) :
     fun toJSON(): JSONObject {
         val json = JSONObject()
         json.put("name", name)
+        json.put("cardAction", cardAction.name)
         json.put("icon", icon)
         json.put("color", "#" + Integer.toHexString(color))
         return json
     }
 
-    constructor(parcel: Parcel) : this(parcel.readString()!!, parcel.readString()!!, parcel.readInt(), parcel.readString()!!)
+    constructor(parcel: Parcel) : this(parcel.readString()!!, parcel.readString()!!, parcel.readInt(), parcel.readString()!!, CardAction.valueOf(parcel.readString()!!))
 
     override fun describeContents(): Int {
         return 0
@@ -44,6 +56,7 @@ class Card(val id: String, var name: String, var color: Int, var icon: String) :
         dest.writeString(name)
         dest.writeInt(color)
         dest.writeString(icon)
+        dest.writeString(cardAction.name)
     }
 
     companion object CREATOR : Parcelable.Creator<Card> {

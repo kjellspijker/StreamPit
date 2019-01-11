@@ -18,6 +18,8 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONObject
+import tk.sliomere.streampit.websocket.StreamPitWebSocket
+import java.net.URI
 
 class MainActivity : AppCompatActivity() {
 
@@ -34,12 +36,15 @@ class MainActivity : AppCompatActivity() {
         const val PREF_CARDS_JSON = "CARD_JSON"
         const val PREF_IP = "IPADDRESS"
         const val PREF_PORT = "PORTNUMBER"
+        const val PREF_PASSWORD = "WEBSOCKETPASSWORD"
+
+        lateinit var webSocketClient: StreamPitWebSocket
     }
 
     private var columnCount: Int = 2
     private lateinit var jsonCardList: JSONObject
     private lateinit var cardList: HashMap<Int, Card>
-    private lateinit var idList: ArrayList<Int>
+    private lateinit var idList: ArrayList<String>
     private lateinit var localBroadcastManager: LocalBroadcastManager
     private lateinit var adapter: CardAdapter
     private lateinit var recyclerView: RecyclerView
@@ -66,7 +71,7 @@ class MainActivity : AppCompatActivity() {
                  * Adding a new card to the list
                  */
                 val card = intent.getParcelableExtra<Card>(cardExtra)
-                idList.add(card.id.toInt())
+                idList.add(card.id)
                 cardList[card.id.toInt()] = card
                 adapter.notifyDataSetChanged()
 
@@ -77,14 +82,14 @@ class MainActivity : AppCompatActivity() {
         localBroadcastManager.registerReceiver(object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent) {
                 val cardID = intent.getStringExtra(MainActivity.cardIDExtra)
-                idList.remove(cardID.toInt())
+                idList.remove(cardID)
                 cardList.remove(cardID.toInt())
-                adapter.notifyDataSetChanged()
                 MainActivity.removingCard = false
                 Toast.makeText(context, resources.getString(R.string.card_removed_toast), Toast.LENGTH_SHORT).show()
                 delMenuItem.icon.setColorFilter(resources.getColor(android.R.color.white, theme), PorterDuff.Mode.SRC_ATOP)
 
                 saveCards()
+                adapter.notifyDataSetChanged()
             }
         }, IntentFilter(eventRemoveCard))
 
@@ -112,18 +117,22 @@ class MainActivity : AppCompatActivity() {
             //No setup done or missing IP/PORT. Redirect to SettingsActivity for IP & Port of OBS Remote
             startActivity(Intent(this, SettingsActivity::class.java).putExtra(firstRunExtra, true))
         }
+
+        connectWebSocket()
     }
 
     private fun saveCards() {
-        val cards = jsonCardList.getJSONObject("cards")
+        val cards = JSONObject()
 
         for (id in idList) {
-            val card = cardList[id]!!
+            val card = cardList[id.toInt()]!!
             cards.put(card.id, card.toJSON())
         }
 
+        jsonCardList.put("cards", cards)
+
         val prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(PREF_CARDS_JSON, jsonCardList.toString()).apply()
+        prefs.edit().putString(PREF_CARDS_JSON, jsonCardList.toString()).commit()
     }
 
     /**
@@ -136,24 +145,27 @@ class MainActivity : AppCompatActivity() {
         val prefs: SharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 //        prefs.edit().remove(PREF_CARDS_JSON).commit()
         if (!prefs.contains(PREF_CARDS_JSON)) {
-            //First run
+//            First run
             val editor = prefs.edit()
             editor.putString(PREF_CARDS_JSON, "{\"cards\": {" +
-                        "\"0\": {" +
-                            "\"name\": \"GO LIVE\"," +
-                            "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_play) + "\"," +
-                            "\"color\": \"#FF4B367C\"" +
-                        "}," +
-                        "\"1\": {" +
-                            "\"name\": \"TOGGLE REC\"," +
-                            "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_record_rec) + "\"," +
-                            "\"color\": \"#FFD50000\"" +
-                        "}," +
-                        "\"2\": {" +
-                            "\"name\": \"DESKTOP AUDIO\"," +
-                            "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_volume_high) + "\"," +
-                            "\"color\": \"#FF2E383F\"" +
-                        "}" +
+                    "\"0\": {" +
+                    "\"name\": \"GO LIVE\"," +
+                    "\"cardAction\": \"NOTHING\"," +
+                    "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_play) + "\"," +
+                    "\"color\": \"#FF4B367C\"" +
+                    "}," +
+                    "\"1\": {" +
+                    "\"name\": \"TOGGLE REC\"," +
+                    "\"cardAction\": \"NOTHING\"," +
+                    "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_record_rec) + "\"," +
+                    "\"color\": \"#FFD50000\"" +
+                    "}," +
+                    "\"2\": {" +
+                    "\"name\": \"DESKTOP AUDIO\"," +
+                    "\"cardAction\": \"TOGGLE_MUTE\"," +
+                    "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_volume_high) + "\"," +
+                    "\"color\": \"#FF2E383F\"" +
+                    "}" +
                     "}}")
             editor.commit()
         }
@@ -165,7 +177,7 @@ class MainActivity : AppCompatActivity() {
             val card = cards.getJSONObject(id)
             val cardObject = Card(id, card)
             Log.d("StreamPit", cardObject.icon)
-            idList.add(cardObject.id.toInt())
+            idList.add(cardObject.id)
             cardList[cardObject.id.toInt()] = cardObject
             if (cardObject.id.toInt() >= cardIDCounter) {
                 cardIDCounter = cardObject.id.toInt() + 1
@@ -249,4 +261,13 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = GridLayoutManager(this, columnCount)
         adapter.notifyDataSetChanged()
     }
+
+    fun connectWebSocket() {
+        val pref = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val uri = URI("ws://" + pref.getString(PREF_IP, "") + ":" + pref.getInt(PREF_PORT, 4444))
+
+        webSocketClient = StreamPitWebSocket(uri, pref.getString(PREF_PASSWORD, "")!!)
+        webSocketClient.connect()
+    }
+
 }

@@ -18,6 +18,7 @@ class SettingsActivity : AppCompatActivity() {
 
     lateinit var ipEditText: TextInputEditText
     lateinit var portEditText: TextInputEditText
+    lateinit var passwordEditText: TextInputEditText
     lateinit var resetDefaultButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,6 +31,7 @@ class SettingsActivity : AppCompatActivity() {
 
         ipEditText = findViewById(R.id.computer_ip_edit_text)
         portEditText = findViewById(R.id.computer_port_edit_text)
+        passwordEditText = findViewById(R.id.password_edit_text)
         resetDefaultButton = findViewById(R.id.reset_all_button)
 
         resetDefaultButton.setOnClickListener{v: View ->
@@ -66,6 +68,7 @@ class SettingsActivity : AppCompatActivity() {
                 val editor = getSharedPreferences(MainActivity.PREF_NAME, Context.MODE_PRIVATE).edit()
                 editor.putString(MainActivity.PREF_IP, ipEditText.text.toString())
                 editor.putInt(MainActivity.PREF_PORT, portEditText.text.toString().toInt())
+                editor.putString(MainActivity.PREF_PASSWORD, passwordEditText.text.toString())
                 editor.apply()
                 Toast.makeText(this, resources.getString(R.string.settings_saved), Toast.LENGTH_SHORT).show()
                 super.finish()

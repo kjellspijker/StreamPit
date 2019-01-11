@@ -24,9 +24,20 @@ class CardViewHolder(var view: View) : RecyclerView.ViewHolder(view) {
         }
     }
 
-    fun bindViewHolder() {
+    fun bindViewHolder(card: Card) {
+        this.card = card
+        this.card.vh = this
         title.setBackgroundColor(card.color)
         icon.setBackgroundColor(card.color)
+        icon.setImageDrawable(view.context.resources.getDrawable(view.context.resources.getIdentifier(card.icon, "drawable", "tk.sliomere.streampit"), view.context.theme))
+    }
+
+    fun toggleMute() {
+        if (card.icon == "icon_volume_high") {
+            card.icon = "icon_mute"
+        } else if (card.icon == "icon_mute") {
+            card.icon = "icon_volume_high"
+        }
         icon.setImageDrawable(view.context.resources.getDrawable(view.context.resources.getIdentifier(card.icon, "drawable", "tk.sliomere.streampit"), view.context.theme))
     }
 

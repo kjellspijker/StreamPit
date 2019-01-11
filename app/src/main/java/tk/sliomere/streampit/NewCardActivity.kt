@@ -84,7 +84,11 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_save -> {
-                val card = Card((MainActivity.cardIDCounter++).toString(), titleEditText.text.toString(), color, icon)
+                var action = CardAction.NOTHING
+                if (icon == "icon_volume_high") {
+                    action = CardAction.TOGGLE_MUTE
+                }
+                val card = Card((MainActivity.cardIDCounter++).toString(), titleEditText.text.toString(), color, icon, action)
 //                MainActivity.addCard(card)
                 val intent = Intent(MainActivity.eventDataSetChanged)
                 intent.putExtra(MainActivity.cardExtra, card)
