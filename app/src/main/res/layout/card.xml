@@ -18,19 +18,21 @@
             <ImageView
                 android:id="@+id/card_image_view"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="90dp"
                 android:background="@color/cardPrimary"
                 android:contentDescription="@string/card_icon"
+                android:paddingTop="15dp"
+                android:paddingBottom="8dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@android:drawable/ic_media_play" />
+                app:srcCompat="@drawable/icon_play" />
 
             <TextView
                 android:id="@+id/card_title"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="30dp"
                 android:background="@color/cardPrimary"
-                android:gravity="center"
+                android:gravity="center_horizontal"
                 android:text="Hello World!"
                 android:textColor="@android:color/white"
                 app:layout_constraintStart_toStartOf="parent"

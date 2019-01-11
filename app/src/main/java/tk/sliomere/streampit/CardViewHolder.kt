@@ -6,7 +6,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
 
-class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+class CardViewHolder(var view: View) : RecyclerView.ViewHolder(view) {
 
     var title: TextView = view.findViewById(R.id.card_title)
     var icon: ImageView = view.findViewById(R.id.card_image_view)
@@ -27,6 +27,7 @@ class CardViewHolder(view: View) : RecyclerView.ViewHolder(view) {
     fun bindViewHolder() {
         title.setBackgroundColor(card.color)
         icon.setBackgroundColor(card.color)
+        icon.setImageDrawable(view.context.resources.getDrawable(view.context.resources.getIdentifier(card.icon, "drawable", "tk.sliomere.streampit"), view.context.theme))
     }
 
 }

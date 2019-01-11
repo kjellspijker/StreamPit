@@ -9,8 +9,8 @@ import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import org.json.JSONObject
 
-class Card(val id: String, var name: String, var color: Int) : Parcelable {
-    constructor(id: String, jsonObject: JSONObject) : this(id, jsonObject.getString("name")!!, Color.parseColor(jsonObject.getString("color")!!))
+class Card(val id: String, var name: String, var color: Int, var icon: String) : Parcelable {
+    constructor(id: String, jsonObject: JSONObject) : this(id, jsonObject.getString("name")!!, Color.parseColor(jsonObject.getString("color")!!), jsonObject.getString("icon"))
 
     fun onClickListener(context: Context) {
         Log.d("StreamPit", "Click Listener")
@@ -28,12 +28,12 @@ class Card(val id: String, var name: String, var color: Int) : Parcelable {
     fun toJSON(): JSONObject {
         val json = JSONObject()
         json.put("name", name)
-        json.put("id", id)
+        json.put("icon", icon)
         json.put("color", "#" + Integer.toHexString(color))
         return json
     }
 
-    constructor(parcel: Parcel) : this(parcel.readString()!!, parcel.readString()!!, parcel.readInt())
+    constructor(parcel: Parcel) : this(parcel.readString()!!, parcel.readString()!!, parcel.readInt(), parcel.readString()!!)
 
     override fun describeContents(): Int {
         return 0
@@ -43,6 +43,7 @@ class Card(val id: String, var name: String, var color: Int) : Parcelable {
         dest.writeString(id)
         dest.writeString(name)
         dest.writeInt(color)
+        dest.writeString(icon)
     }
 
     companion object CREATOR : Parcelable.Creator<Card> {

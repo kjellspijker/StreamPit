@@ -23,13 +23,13 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/button_title_edit_text"
-            android:theme="@style/EditTextTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:hint="@string/card_title"
             android:textColor="@android:color/white"
-            android:textColorHint="@color/colorAccent" />
+            android:textColorHint="@color/colorAccent"
+            android:theme="@style/EditTextTheme" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
@@ -52,19 +52,28 @@
             android:textColor="@color/colorAccent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <ImageButton
-            android:id="@+id/button_icon_image_button"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_marginStart="8dp"
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
             android:layout_marginEnd="8dp"
-            android:background="@color/cardPrimary"
-            android:contentDescription="@string/card_icon"
+            android:elevation="10dp"
+            app:cardCornerRadius="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/choose_button_icon_tv"
-            app:srcCompat="@android:drawable/ic_media_play" />
+            app:layout_constraintTop_toBottomOf="@+id/choose_button_icon_tv">
+
+            <ImageButton
+                android:id="@+id/button_icon_image_button"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="@color/cardPrimary"
+                android:contentDescription="@string/card_icon"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/icon_record_rec" />
+        </androidx.cardview.widget.CardView>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
@@ -88,18 +97,25 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
-        <ImageButton
-            android:id="@+id/color_image_button"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="16dp"
-            android:layout_marginEnd="8dp"
-            android:background="@color/cardPrimary"
-            android:contentDescription="@string/color_image_button"
+            android:layout_marginEnd="16dp"
+            android:elevation="10dp"
+            app:cardCornerRadius="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/choose_button_color" />
+            app:layout_constraintTop_toBottomOf="@+id/choose_button_color">
+
+            <ImageButton
+                android:id="@+id/color_image_button"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="@color/cardPrimary"
+                android:contentDescription="@string/color_image_button" />
+        </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView

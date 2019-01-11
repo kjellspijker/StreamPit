@@ -23,18 +23,22 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         var cardIDCounter = 0
+        var removingCard = false
+        const val firstRunExtra = "CARDEXTRA"
         const val cardExtra = "CARDEXTRA"
         const val cardIDExtra = "CARDID"
         const val eventDataSetChanged = "NOTIFYDATASETCHANGED"
         const val eventRemoveCard = "REMOVECARD"
-        var removingCard = false
+        const val eventResetCards = "RESETCARDS"
+        const val PREF_NAME = "STREAMPIT"
+        const val PREF_CARDS_JSON = "CARD_JSON"
+        const val PREF_IP = "IPADDRESS"
+        const val PREF_PORT = "PORTNUMBER"
     }
 
     private lateinit var jsonCardList: JSONObject
     private lateinit var cardList: ArrayList<Card>
     private lateinit var localBroadcastManager: LocalBroadcastManager
-    private val PREF_NAME = "STREAMPIT"
-    private val PREF_CARDS_JSON = "CARD_JSON"
     private lateinit var adapter: CardAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var decor: RecyclerView.ItemDecoration
@@ -80,6 +84,12 @@ class MainActivity : AppCompatActivity() {
             }
         }, IntentFilter(eventRemoveCard))
 
+        localBroadcastManager.registerReceiver(object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent) {
+                prepareCards()
+            }
+        }, IntentFilter(eventResetCards))
+
         calculateColumns()
 
         decor = GridSpacingItemDecoration(columnCount, dpToPx(10), true)
@@ -90,6 +100,14 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = adapter
 
         prepareCards()
+
+        val prefs = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        if (prefs.contains(PREF_IP) && prefs.contains(PREF_PORT)) {
+            //Start connection with OBS Remote
+        } else {
+            //No setup done or missing IP/PORT. Redirect to SettingsActivity for IP & Port of OBS Remote
+            startActivity(Intent(this, SettingsActivity::class.java).putExtra(firstRunExtra, true))
+        }
     }
 
     private fun saveCards() {
@@ -108,6 +126,7 @@ class MainActivity : AppCompatActivity() {
      * Then the function retrieves the cards from prefs and loads them into the cardList
      */
     private fun prepareCards() {
+        cardList.clear()
         val prefs: SharedPreferences = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 //        prefs.edit().remove(PREF_CARDS_JSON).commit()
         if (!prefs.contains(PREF_CARDS_JSON)) {
@@ -116,14 +135,17 @@ class MainActivity : AppCompatActivity() {
             editor.putString(PREF_CARDS_JSON, "{\"cards\": {" +
                         "\"0\": {" +
                             "\"name\": \"GO LIVE\"," +
+                            "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_play) + "\"," +
                             "\"color\": \"#FF4B367C\"" +
                         "}," +
                         "\"1\": {" +
                             "\"name\": \"TOGGLE REC\"," +
+                            "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_record_rec) + "\"," +
                             "\"color\": \"#FFD50000\"" +
                         "}," +
                         "\"2\": {" +
                             "\"name\": \"DESKTOP AUDIO\"," +
+                            "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_volume_high) + "\"," +
                             "\"color\": \"#FF2E383F\"" +
                         "}" +
                     "}}")
@@ -135,8 +157,8 @@ class MainActivity : AppCompatActivity() {
         val cards = json.getJSONObject("cards")
         for (id in cards.keys()) {
             val card = cards.getJSONObject(id)
-            Log.d("StreamPit", card.toString(4))
             val cardObject = Card(id, card)
+            Log.d("StreamPit", cardObject.icon)
             cardList.add(cardObject)
             if (cardObject.id.toInt() >= cardIDCounter) {
                 cardIDCounter = cardObject.id.toInt() + 1
@@ -170,7 +192,6 @@ class MainActivity : AppCompatActivity() {
 
         for (i in 0 until menu.size()) {
             if (menu.getItem(i).itemId == R.id.action_del_card) {
-                Log.d("StreamPit", "item found")
                 delMenuItem = menu.getItem(i)
                 break
             }
@@ -200,7 +221,10 @@ class MainActivity : AppCompatActivity() {
                 }
                 true
             }
-            R.id.action_settings -> true
+            R.id.action_settings -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }

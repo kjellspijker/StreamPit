@@ -12,4 +12,15 @@
     <string name="card_removed_toast">Removed Card!</string>
     <string name="removing_cards_toast">Removing cards!</string>
     <string name="removing_cards_cancelled_toast">Removing cards cancelled</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="obs_ip_address">OBS IP Address</string>
+    <string name="default_port">4444</string>
+    <string name="obs_ip_port">OBS IP Port (Default: 4444)</string>
+    <string name="first_run_toast">Please enter your streaming computer\'s IP address</string>
+    <string name="no_ip_entered">Please enter a valid IP address first!</string>
+    <string name="invalid_port_entered">Please enter a valid port number!</string>
+    <string name="settings_saved">Settings saved</string>
+    <string name="confirm_reset_all_cards">Reset cards</string>
+    <string name="confirm_reset_all_cards_message">Do you really want to reset all cards to default? (THIS CANNOT BE UNDONE!)</string>
+    <string name="reset_all_cards">Reset all cards to default</string>
 </resources>
