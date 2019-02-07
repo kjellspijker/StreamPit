@@ -5,6 +5,8 @@ import android.content.res.Configuration
 import android.graphics.Point
 import android.graphics.PorterDuff
 import android.os.Bundle
+import android.os.Handler
+import android.os.Message
 import android.util.Log
 import android.util.TypedValue
 import android.view.Display
@@ -27,18 +29,25 @@ class MainActivity : AppCompatActivity() {
         var cardIDCounter = 0
         var removingCard = false
         const val firstRunExtra = "CARDEXTRA"
+        const val authFailedExtra = "AUTHFAILEDEXTRA"
         const val cardExtra = "CARDEXTRA"
         const val cardIDExtra = "CARDID"
         const val eventDataSetChanged = "NOTIFYDATASETCHANGED"
         const val eventRemoveCard = "REMOVECARD"
         const val eventResetCards = "RESETCARDS"
+        const val eventAuthFailed = "AUTHFAILED"
+        const val eventReconnectWebSocket = "RECONNECTWEBSOCKET"
         const val PREF_NAME = "STREAMPIT"
         const val PREF_CARDS_JSON = "CARD_JSON"
         const val PREF_IP = "IPADDRESS"
         const val PREF_PORT = "PORTNUMBER"
+
         const val PREF_PASSWORD = "WEBSOCKETPASSWORD"
+        const val requestCodeFirstSettings = 500
+        const val requestCodeAuthFailed = 501
 
         lateinit var webSocketClient: StreamPitWebSocket
+        lateinit var handler: Handler
     }
 
     private var columnCount: Int = 2
@@ -55,6 +64,21 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+
+        handler = Handler(Handler.Callback { msg: Message ->
+            if (msg.obj is String) {
+                Log.d("StreamPit", "Handler: " + msg.obj)
+                if (msg.obj == eventAuthFailed) {
+                    startActivityForResult(Intent(this, SettingsActivity::class.java).putExtra(authFailedExtra, true), MainActivity.requestCodeAuthFailed)
+                } else if (msg.obj == eventReconnectWebSocket) {
+                    webSocketClient.reconnect()
+                    webSocketClient.changingPwd = false
+                }
+            }
+            true
+        })
+
+        connectWebSocket()
 
         jsonCardList = JSONObject("{\"cards\": {}}")
 
@@ -115,10 +139,15 @@ class MainActivity : AppCompatActivity() {
             //Start connection with OBS Remote
         } else {
             //No setup done or missing IP/PORT. Redirect to SettingsActivity for IP & Port of OBS Remote
-            startActivity(Intent(this, SettingsActivity::class.java).putExtra(firstRunExtra, true))
+            startActivityForResult(Intent(this, SettingsActivity::class.java).putExtra(firstRunExtra, true), MainActivity.requestCodeFirstSettings)
         }
+    }
 
-        connectWebSocket()
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == requestCodeFirstSettings && resultCode ==  0) {
+            Log.d("StreamPit", "First Time Setup Completed... Connecting...")
+            connectWebSocket()
+        }
     }
 
     private fun saveCards() {
@@ -150,20 +179,23 @@ class MainActivity : AppCompatActivity() {
             editor.putString(PREF_CARDS_JSON, "{\"cards\": {" +
                     "\"0\": {" +
                     "\"name\": \"GO LIVE\"," +
-                    "\"cardAction\": \"NOTHING\"," +
+                    "\"cardAction\": \"TOGGLE_STREAMING\"," +
                     "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_play) + "\"," +
+                    "\"target\": \"\"," +
                     "\"color\": \"#FF4B367C\"" +
                     "}," +
                     "\"1\": {" +
                     "\"name\": \"TOGGLE REC\"," +
-                    "\"cardAction\": \"NOTHING\"," +
+                    "\"cardAction\": \"TOGGLE_RECORDING\"," +
                     "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_record_rec) + "\"," +
+                    "\"target\": \"\"," +
                     "\"color\": \"#FFD50000\"" +
                     "}," +
                     "\"2\": {" +
                     "\"name\": \"DESKTOP AUDIO\"," +
                     "\"cardAction\": \"TOGGLE_MUTE\"," +
-                    "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_volume_high) + "\"," +
+                    "\"icon\": \"" + resources.getResourceEntryName(R.drawable.icon_volume) + "\"," +
+                    "\"target\": \"Desktop Audio\"," +
                     "\"color\": \"#FF2E383F\"" +
                     "}" +
                     "}}")
@@ -262,11 +294,17 @@ class MainActivity : AppCompatActivity() {
         adapter.notifyDataSetChanged()
     }
 
+    fun setupIcons() {
+        for (id in cardList.keys) {
+            cardList[id]?.reloadCard()
+        }
+    }
+
     fun connectWebSocket() {
         val pref = getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
         val uri = URI("ws://" + pref.getString(PREF_IP, "") + ":" + pref.getInt(PREF_PORT, 4444))
 
-        webSocketClient = StreamPitWebSocket(uri, pref.getString(PREF_PASSWORD, "")!!)
+        webSocketClient = StreamPitWebSocket(uri, pref.getString(PREF_PASSWORD, "")!!, ::setupIcons)
         webSocketClient.connect()
     }
 

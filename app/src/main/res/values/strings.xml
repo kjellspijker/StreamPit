@@ -24,4 +24,6 @@
     <string name="confirm_reset_all_cards_message">Do you really want to reset all cards to default? (THIS CANNOT BE UNDONE!)</string>
     <string name="reset_all_cards">Reset all cards to default</string>
     <string name="password">Please enter the password of the websocket</string>
+    <string name="card_status_updated">Card status updated!</string>
+    <string name="card_target">Please enter the name of the target</string>
 </resources>

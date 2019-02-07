@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.widget.Button
@@ -49,14 +50,24 @@ class SettingsActivity : AppCompatActivity() {
                     .setNegativeButton(android.R.string.no, null).show()
         }
 
-        if (intent.hasExtra(MainActivity.firstRunExtra)) {
-            Toast.makeText(this, resources.getString(R.string.first_run_toast), Toast.LENGTH_LONG).show()
-        } else {
-            val prefs = getSharedPreferences(MainActivity.PREF_NAME, Context.MODE_PRIVATE)
-//            prefs.edit().remove(MainActivity.PREF_IP).remove(MainActivity.PREF_PORT).apply()
-            ipEditText.setText(prefs.getString(MainActivity.PREF_IP, ""))
-            portEditText.setText(prefs.getInt(MainActivity.PREF_PORT, 4444).toString())
+        if (intent.hasExtra(MainActivity.firstRunExtra)) Toast.makeText(this, resources.getString(R.string.first_run_toast), Toast.LENGTH_LONG).show()
+        else if (intent.hasExtra(MainActivity.authFailedExtra)) {
+            Toast.makeText(this, "Authentication with OBS Failed!\nPlease enter the correct password!", Toast.LENGTH_LONG).show()
+            setPrefValues()
+            passwordEditText.requestFocus()
         }
+        else setPrefValues()
+    }
+
+    fun setPrefValues() {
+        val prefs = getSharedPreferences(MainActivity.PREF_NAME, Context.MODE_PRIVATE)
+//            prefs.edit().remove(MainActivity.PREF_IP).remove(MainActivity.PREF_PORT).apply()
+        val ip = prefs.getString(MainActivity.PREF_IP, "")
+        Log.d("StreamPit", "ip: $ip")
+        ipEditText.setText(ip)
+        portEditText.setText(prefs.getInt(MainActivity.PREF_PORT, 4444).toString())
+        passwordEditText.setText(prefs.getString(MainActivity.PREF_PASSWORD, ""))
+
     }
 
     override fun finish() {
@@ -65,12 +76,19 @@ class SettingsActivity : AppCompatActivity() {
         } else {
             val port = portEditText.text.toString().toInt()
             if (port in 1..65534) {
-                val editor = getSharedPreferences(MainActivity.PREF_NAME, Context.MODE_PRIVATE).edit()
+                val pref = getSharedPreferences(MainActivity.PREF_NAME, Context.MODE_PRIVATE)
+                val editor = pref.edit()
                 editor.putString(MainActivity.PREF_IP, ipEditText.text.toString())
                 editor.putInt(MainActivity.PREF_PORT, portEditText.text.toString().toInt())
-                editor.putString(MainActivity.PREF_PASSWORD, passwordEditText.text.toString())
-                editor.apply()
+                val oldPwd = pref.getString(MainActivity.PREF_PASSWORD, "")
+                val newPwd = passwordEditText.text.toString()
+                if (oldPwd != newPwd) {
+                    MainActivity.webSocketClient.passwordChanged(newPwd)
+                    editor.putString(MainActivity.PREF_PASSWORD, newPwd)
+                }
+                editor.commit()
                 Toast.makeText(this, resources.getString(R.string.settings_saved), Toast.LENGTH_SHORT).show()
+                setResult(0)
                 super.finish()
             } else {
                 Toast.makeText(this, resources.getString(R.string.invalid_port_entered), Toast.LENGTH_LONG).show()

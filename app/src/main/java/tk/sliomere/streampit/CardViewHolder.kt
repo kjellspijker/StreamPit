@@ -33,12 +33,15 @@ class CardViewHolder(var view: View) : RecyclerView.ViewHolder(view) {
     }
 
     fun toggleMute() {
-        if (card.icon == "icon_volume_high") {
+        var colorFilter: Int = view.resources.getColor(android.R.color.white, view.context.theme)
+        if (card.icon == "icon_volume") {
             card.icon = "icon_mute"
+            colorFilter = view.resources.getColor(R.color.colorMuted, view.context.theme)
         } else if (card.icon == "icon_mute") {
-            card.icon = "icon_volume_high"
+            card.icon = "icon_volume"
         }
         icon.setImageDrawable(view.context.resources.getDrawable(view.context.resources.getIdentifier(card.icon, "drawable", "tk.sliomere.streampit"), view.context.theme))
+        icon.setColorFilter(colorFilter)
     }
 
 }

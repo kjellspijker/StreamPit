@@ -20,6 +20,6 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <include layout="@layout/content_new_button" />
+    <include layout="@layout/content_new_card" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

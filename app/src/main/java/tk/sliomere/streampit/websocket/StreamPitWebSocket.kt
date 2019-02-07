@@ -1,44 +1,91 @@
 package tk.sliomere.streampit.websocket
 
+import android.os.Message
 import android.util.Base64
 import android.util.Log
+import org.java_websocket.WebSocket
 import org.java_websocket.client.WebSocketClient
-import org.java_websocket.drafts.Draft_17
 import org.java_websocket.exceptions.WebsocketNotConnectedException
 import org.java_websocket.handshake.ServerHandshake
 import org.json.JSONObject
 import tk.sliomere.streampit.MainActivity
+import tk.sliomere.streampit.obs.OBSHolder
 import java.net.URI
 import java.security.MessageDigest
 
-class StreamPitWebSocket(uri: URI, var password: String) : WebSocketClient(uri, Draft_17()) {
-    var callbacks: HashMap<String, (json: JSONObject) -> Unit> = HashMap()
-    var messageIdCounter = 0
+class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: () -> Unit) : WebSocketClient(uri) {
+
+    companion object {
+        val obsHolder = OBSHolder()
+    }
+
+    var changingPwd = false
+    private var newPwd = password
+    private var callbacks: HashMap<String, (json: JSONObject) -> Unit> = HashMap()
+    private var messageIdCounter = 0
 
     override fun onOpen(handshakedata: ServerHandshake?) {
         Log.d("StreamPit", "WebSocket opened")
-        MainActivity.webSocketClient.sendMessage("GetAuthRequired", JSONObject(), callback = { msg: JSONObject ->
+        this.sendMessage("GetAuthRequired", JSONObject(), callback = { msg: JSONObject ->
             if (msg.getBoolean("authRequired")) {
                 val authResponse = calculateAuthResponse(password, msg.getString("salt"), msg.getString("challenge"))
 
                 val args = JSONObject()
                 args.put("auth", authResponse)
-                this.sendMessage("Authenticate", args)
+                this.sendMessage("Authenticate", args, callback = { authMsg: JSONObject ->
+                    if (authMsg.has("error")) {
+                        val message = Message()
+                        message.obj  = MainActivity.eventAuthFailed
+                        MainActivity.handler.sendMessage(message)
+                    } else {
+                        onConnectCallback.invoke()
+                        this.sendMessage("GetSourcesList", JSONObject(), callback = { msg: JSONObject ->
+                            obsHolder.parseSourcesList(msg.getJSONArray("sources"))
+                        })
+                    }
+                })
             }
         })
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {
         Log.d("StreamPit", "WebSocket closed: $reason")
+        if (this.changingPwd) {
+            password = newPwd
+            val msg = Message()
+            msg.obj = MainActivity.eventReconnectWebSocket
+            MainActivity.handler.sendMessage(msg)
+        }
     }
 
     override fun onMessage(message: String?) {
         Log.d("StreamPit", "Message received: ")
         Log.d("StreamPit", message)
         val msg = JSONObject(message)
-        if (callbacks.containsKey(msg.getString("message-id"))) {
-            val mid = msg.getString("message-id")
-            callbacks.remove(mid)!!.invoke(msg)
+        if (msg.has("status") && msg.getString("status") == "error") {
+            Log.d("StreamPit", "An error occured: " + msg.getString("error"))
+            if (!msg.getString("error").contains("Authentication")) {
+                return
+            }
+        }
+        if (msg.has("message-id")) {
+            if (callbacks.containsKey(msg.getString("message-id"))) {
+                val mid = msg.getString("message-id")
+                if (callbacks.containsKey(mid)) {
+                    callbacks.remove(mid)!!.invoke(msg)
+                }
+            }
+        } else if (msg.has("update-type")) {
+            //Event
+            when (msg.getString("update-type")) {
+                "SceneItemVisibilityChanged" -> {
+                    val message = Message()
+                    val json = JSONObject()
+                    //TODO think about the handling of visibility changes. Dependent on scene-name & item-name
+//                    json.put("target", )
+//                    MainActivity.handler.sendMessage()
+                }
+            }
         }
     }
 
@@ -60,7 +107,7 @@ class StreamPitWebSocket(uri: URI, var password: String) : WebSocketClient(uri, 
     }
 
     fun sendMessage(requestType: String, args: JSONObject, callback: (json: JSONObject) -> Unit) {
-        if (!this.connection.isOpen) {
+        if (this.connection.readyState != WebSocket.READYSTATE.OPEN) {
             throw WebsocketNotConnectedException()
         }
         val mid = messageIdCounter++
@@ -81,5 +128,11 @@ class StreamPitWebSocket(uri: URI, var password: String) : WebSocketClient(uri, 
         val authResponseHash = md.digest(authResponseString.toByteArray())
 
         return Base64.encodeToString(authResponseHash, Base64.NO_WRAP)
+    }
+
+    fun passwordChanged(newPwd: String) {
+        changingPwd = true
+        this.newPwd = newPwd
+        this.close()
     }
 }

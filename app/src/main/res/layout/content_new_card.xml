@@ -7,7 +7,7 @@
     android:background="@color/colorPrimary"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context=".NewCardActivity"
-    tools:showIn="@layout/activity_new_button">
+    tools:showIn="@layout/activity_new_card">
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout"
@@ -22,7 +22,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/button_title_edit_text"
+            android:id="@+id/card_title_edit_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -65,7 +65,7 @@
             app:layout_constraintTop_toBottomOf="@+id/choose_button_icon_tv">
 
             <ImageButton
-                android:id="@+id/button_icon_image_button"
+                android:id="@+id/card_icon_image_button"
                 android:layout_width="90dp"
                 android:layout_height="90dp"
                 android:paddingTop="12dp"
@@ -120,6 +120,30 @@
         </androidx.cardview.widget.CardView>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/textInputLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:textColorHint="@color/colorAccent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout3">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/card_target_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:hint="@string/card_target"
+            android:textColor="@android:color/white"
+            android:textColorHint="@color/colorAccent"
+            android:theme="@style/EditTextTheme" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
     <TextView
         android:id="@+id/choose_btn_action_tv"
         android:layout_width="wrap_content"
@@ -131,6 +155,6 @@
         android:textColor="@color/colorAccent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/constraintLayout3" />
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout2" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

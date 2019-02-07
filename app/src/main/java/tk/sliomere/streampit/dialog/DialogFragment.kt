@@ -14,6 +14,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import tk.sliomere.streampit.CardAction
 import tk.sliomere.streampit.GridSpacingItemDecoration
 import tk.sliomere.streampit.NewCardActivity
 import tk.sliomere.streampit.R
@@ -23,6 +24,7 @@ class DialogFragment : DialogFragment() {
     companion object {
         const val eventCloseDialog = "CLOSEDIALOGEVENT"
         const val extraIconName = "ICONNAME"
+        const val extraCardAction = "CARDACTION"
     }
 
     val dialogCardList: ArrayList<DialogCard> = ArrayList()
@@ -44,16 +46,16 @@ class DialogFragment : DialogFragment() {
         dialogCardList.clear()
         val availableIcons = NewCardActivity.availableIcons
         for (icon in availableIcons) {
-            dialogCardList.add(DialogCard(NewCardActivity.color, icon))
+            dialogCardList.add(DialogCard(NewCardActivity.color, icon, CardAction.parse(icon)))
         }
 
-        decor = GridSpacingItemDecoration(2, dpToPx(10), true)
+        decor = GridSpacingItemDecoration(1, dpToPx(10), true)
 
         val adapter = DialogAdapter(context!!, dialogCardList)
         val recyclerView: RecyclerView = v.findViewById(R.id.dialog_recycler_view)
         recyclerView.adapter = adapter
         recyclerView.addItemDecoration(decor)
-        recyclerView.layoutManager = GridLayoutManager(context, 2)
+        recyclerView.layoutManager = GridLayoutManager(context, 1)
         recyclerView.itemAnimator = DefaultItemAnimator()
 
         return v

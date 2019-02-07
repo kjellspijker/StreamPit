@@ -9,52 +9,52 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.android.material.textfield.TextInputEditText
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
-import kotlinx.android.synthetic.main.activity_new_button.*
+import kotlinx.android.synthetic.main.activity_new_card.*
 import tk.sliomere.streampit.dialog.DialogFragment
-import java.util.*
-import kotlin.random.Random
 
 class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
 
     companion object {
         const val eventDialogClosed = "DIALOGCLOSED"
-        val availableIcons: ArrayList<String> = ArrayList()
+        val availableIcons: Array<String> = arrayOf("icon_scene", "icon_play", "icon_volume", "icon_record_rec", "icon_visible")
         var color: Int = -1
     }
 
     private lateinit var icon: String
     private lateinit var titleEditText: TextInputEditText
-    private lateinit var buttonIconImageBtn: ImageButton
+    private lateinit var targetEditText: TextInputEditText
+    private lateinit var cardIconImageBtn: ImageButton
     private lateinit var colorImageButton: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_new_button)
+        setContentView(R.layout.activity_new_card)
         setSupportActionBar(toolbar)
 
-        availableIcons.clear()
-        for (field in R.drawable::class.java.fields) {
-            if (field.name.startsWith("icon_")) {
-                Log.d("StreamPit", field.name)
-                availableIcons.add(field.name)
-            }
-        }
+//        availableIcons.clear()
+//        for (field in R.drawable::class.java.fields) {
+//            if (field.name.startsWith("icon_")) {
+//                Log.d("StreamPit", field.name)
+//                availableIcons.add(field.name)
+//            }
+//        }
 
         icon = resources.getResourceEntryName(R.drawable.icon_play)
         color = resources.getColor(R.color.cardPrimary, this.theme)
-        titleEditText = findViewById(R.id.button_title_edit_text)
-        buttonIconImageBtn = findViewById(R.id.button_icon_image_button)
+        titleEditText = findViewById(R.id.card_title_edit_text)
+        targetEditText = findViewById(R.id.card_target_edit_text)
+        cardIconImageBtn = findViewById(R.id.card_icon_image_button)
         colorImageButton = findViewById(R.id.color_image_button)
 
-        buttonIconImageBtn.setOnClickListener { _: View? ->
-            icon = availableIcons[Random.nextInt(0, availableIcons.size)]
-            Log.d("StreamPit", icon)
+        cardIconImageBtn.setOnClickListener { _: View? ->
             DialogFragment().show(supportFragmentManager, "ChooseIconDialog")
         }
 
@@ -65,7 +65,7 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
         LocalBroadcastManager.getInstance(this).registerReceiver(object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 icon = intent!!.getStringExtra(DialogFragment.extraIconName)
-                buttonIconImageBtn.setImageDrawable(resources.getDrawable(resources.getIdentifier(icon, "drawable", "tk.sliomere.streampit"), theme))
+                cardIconImageBtn.setImageDrawable(resources.getDrawable(resources.getIdentifier(icon, "drawable", "tk.sliomere.streampit"), theme))
             }
         }, IntentFilter(eventDialogClosed))
 
@@ -74,7 +74,7 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_new_button, menu)
+        menuInflater.inflate(R.menu.menu_new_card, menu)
         return true
     }
 
@@ -84,17 +84,26 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_save -> {
-                var action = CardAction.NOTHING
-                if (icon == "icon_volume_high") {
-                    action = CardAction.TOGGLE_MUTE
-                }
-                val card = Card((MainActivity.cardIDCounter++).toString(), titleEditText.text.toString(), color, icon, action)
+                val title = titleEditText.text.toString()
+                val target = targetEditText.text.toString()
+                if (title.isEmpty() || target.isEmpty()) {
+                    Toast.makeText(this, "Please fill in all fields!", Toast.LENGTH_LONG).show()
+                    if (title.isEmpty()) {
+                        titleEditText.requestFocus()
+                        (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager ).showSoftInput(titleEditText, InputMethodManager.SHOW_IMPLICIT)
+                    } else if (target.isEmpty()) {
+                        targetEditText.requestFocus()
+                        (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager ).showSoftInput(targetEditText, InputMethodManager.SHOW_IMPLICIT)
+                    }
+                } else {
+                    val card = Card((MainActivity.cardIDCounter++).toString(), title, color, icon, CardAction.parse(icon), target)
 //                MainActivity.addCard(card)
-                val intent = Intent(MainActivity.eventDataSetChanged)
-                intent.putExtra(MainActivity.cardExtra, card)
-                LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
-                Log.d("StreamPit", "Title: " + titleEditText.text.toString())
-                finish()
+                    val intent = Intent(MainActivity.eventDataSetChanged)
+                    intent.putExtra(MainActivity.cardExtra, card)
+                    LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+                    Log.d("StreamPit", "Title: " + titleEditText.text.toString())
+                    finish()
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -108,7 +117,7 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
     override fun onColorSelected(dialogId: Int, color: Int) {
         NewCardActivity.color = color
         Log.d("StreamPit", "Color set to: #" + Integer.toHexString(color))
-        buttonIconImageBtn.setBackgroundColor(color)
+        cardIconImageBtn.setBackgroundColor(color)
         colorImageButton.setBackgroundColor(color)
     }
 
