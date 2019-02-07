@@ -74,6 +74,13 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
             this.sendMessage("GetStudioModeStatus", JSONObject(), callback = { msg: JSONObject ->
                 MainActivity.OBS_STUDIO_MODE_ENABLED = msg.getBoolean("studio-mode")
             })
+            if (MainActivity.listeningCards.containsKey(CardAction.TOGGLE_VISIBILITY)) {
+                for (card in MainActivity.listeningCards[CardAction.TOGGLE_VISIBILITY]!!) {
+                    if (card is ToggleVisibilityCard) {
+                        card.reloadCard()
+                    }
+                }
+            }
         } else {
             this.cardsReady = true
         }

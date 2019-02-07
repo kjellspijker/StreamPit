@@ -19,7 +19,11 @@ class ToggleVisibilityCard(id: String, name: String, color: Int, icon: String, t
     }
 
     override fun reloadCard() {
-
+        val args = JSONObject()
+        args.put("item", target)
+        MainActivity.webSocketClient.sendMessage("GetSceneItemProperties", args, callback = { msg: JSONObject ->
+            vh.toggleVisibility(msg.getBoolean("visible"))
+        })
     }
 
     override fun onClickListener(context: Context): Boolean {
