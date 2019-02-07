@@ -5,6 +5,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.RecyclerView
+import tk.sliomere.streampit.cards.Card
 
 class CardViewHolder(var view: View) : RecyclerView.ViewHolder(view) {
 

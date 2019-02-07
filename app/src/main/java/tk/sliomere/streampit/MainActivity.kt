@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONObject
+import tk.sliomere.streampit.cards.*
 import tk.sliomere.streampit.websocket.StreamPitWebSocket
 import java.net.URI
 
@@ -48,6 +49,8 @@ class MainActivity : AppCompatActivity() {
 
         lateinit var webSocketClient: StreamPitWebSocket
         lateinit var handler: Handler
+
+        val listeningCards: HashMap<CardAction, ArrayList<Card>> = HashMap()
     }
 
     private var columnCount: Int = 2
@@ -207,7 +210,14 @@ class MainActivity : AppCompatActivity() {
         val cards = json.getJSONObject("cards")
         for (id in cards.keys()) {
             val card = cards.getJSONObject(id)
-            val cardObject = Card(id, card)
+            val cardObject = when(CardAction.valueOf(card.getString("cardAction"))) {
+                 CardAction.TOGGLE_MUTE -> ToggleMuteCard(id, card)
+                 CardAction.TOGGLE_STREAMING -> ToggleStreamingCard(id, card)
+                 CardAction.TOGGLE_VISIBILITY -> ToggleVisibilityCard(id, card)
+                 CardAction.TOGGLE_RECORDING -> ToggleRecordingCard(id, card)
+                 CardAction.SWITCH_SCENE -> SwitchSceneCard(id, card)
+                 CardAction.NOTHING -> NothingCard(id, card)
+            }
             Log.d("StreamPit", cardObject.icon)
             idList.add(cardObject.id)
             cardList[cardObject.id.toInt()] = cardObject
@@ -217,6 +227,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         adapter.notifyDataSetChanged()
+        webSocketClient.onReady()
     }
 
     /**
@@ -295,6 +306,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setupIcons() {
+        Log.d("StreamPit", "SetupIcons")
         for (id in cardList.keys) {
             cardList[id]?.reloadCard()
         }

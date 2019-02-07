@@ -8,7 +8,9 @@ import org.java_websocket.client.WebSocketClient
 import org.java_websocket.exceptions.WebsocketNotConnectedException
 import org.java_websocket.handshake.ServerHandshake
 import org.json.JSONObject
+import tk.sliomere.streampit.CardAction
 import tk.sliomere.streampit.MainActivity
+import tk.sliomere.streampit.cards.SwitchSceneCard
 import tk.sliomere.streampit.obs.OBSHolder
 import java.net.URI
 import java.security.MessageDigest
@@ -23,6 +25,8 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
     private var newPwd = password
     private var callbacks: HashMap<String, (json: JSONObject) -> Unit> = HashMap()
     private var messageIdCounter = 0
+    private var authenticated = false
+    private var cardsReady = false
 
     override fun onOpen(handshakedata: ServerHandshake?) {
         Log.d("StreamPit", "WebSocket opened")
@@ -38,6 +42,10 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
                         message.obj  = MainActivity.eventAuthFailed
                         MainActivity.handler.sendMessage(message)
                     } else {
+                        authenticated = true
+                        if (cardsReady) {
+                            onReady()
+                        }
                         onConnectCallback.invoke()
                         this.sendMessage("GetSourcesList", JSONObject(), callback = { msg: JSONObject ->
                             obsHolder.parseSourcesList(msg.getJSONArray("sources"))
@@ -46,6 +54,25 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
                 })
             }
         })
+    }
+
+    fun onReady() {
+        Log.d("StreamPit", "OnReady")
+        if (authenticated) {
+            this.cardsReady = false
+            this.sendMessage("GetCurrentScene", JSONObject(), callback = { msg: JSONObject ->
+                val sceneName = msg.getString("name")
+                if (MainActivity.listeningCards.containsKey(CardAction.SWITCH_SCENE)) {
+                    for (card in MainActivity.listeningCards[CardAction.SWITCH_SCENE]!!) {
+                        if (card is SwitchSceneCard) {
+                            card.onSceneUpdate(sceneName)
+                        }
+                    }
+                }
+            })
+        } else {
+            this.cardsReady = true
+        }
     }
 
     override fun onClose(code: Int, reason: String?, remote: Boolean) {
@@ -85,6 +112,17 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
 //                    json.put("target", )
 //                    MainActivity.handler.sendMessage()
                 }
+                "SwitchScenes" -> {
+                    val name = msg.getString("scene-name")
+                    if (MainActivity.listeningCards.containsKey(CardAction.SWITCH_SCENE)) {
+                        val cards = MainActivity.listeningCards[CardAction.SWITCH_SCENE]!!
+                        for (card in cards) {
+                            if (card is SwitchSceneCard) {
+                                card.onSceneUpdate(name)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -102,7 +140,7 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
         val mid = messageIdCounter++
         args.put("request-type", requestType)
         args.put("message-id", mid.toString())
-        Log.d("StreamPit", "Sending: " + args.toString())
+        Log.d("StreamPit", "Sending: $args")
         this.send(args.toString())
     }
 

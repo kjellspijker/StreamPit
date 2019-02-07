@@ -18,6 +18,7 @@ import com.google.android.material.textfield.TextInputEditText
 import com.jaredrummler.android.colorpicker.ColorPickerDialog
 import com.jaredrummler.android.colorpicker.ColorPickerDialogListener
 import kotlinx.android.synthetic.main.activity_new_card.*
+import tk.sliomere.streampit.cards.*
 import tk.sliomere.streampit.dialog.DialogFragment
 
 class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
@@ -96,7 +97,15 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
                         (getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager ).showSoftInput(targetEditText, InputMethodManager.SHOW_IMPLICIT)
                     }
                 } else {
-                    val card = Card((MainActivity.cardIDCounter++).toString(), title, color, icon, CardAction.parse(icon), target)
+                    val cardAction = CardAction.parse(icon)
+                    val card = when (cardAction) {
+                        CardAction.TOGGLE_MUTE -> ToggleMuteCard((MainActivity.cardIDCounter++).toString(), title, color, icon, target)
+                        CardAction.TOGGLE_RECORDING -> ToggleRecordingCard((MainActivity.cardIDCounter++).toString(), title, color, icon, target)
+                        CardAction.SWITCH_SCENE -> SwitchSceneCard((MainActivity.cardIDCounter++).toString(), title, color, icon, target)
+                        CardAction.TOGGLE_STREAMING -> ToggleStreamingCard((MainActivity.cardIDCounter++).toString(), title, color, icon, target)
+                        CardAction.TOGGLE_VISIBILITY -> ToggleVisibilityCard((MainActivity.cardIDCounter++).toString(), title, color, icon, target)
+                        CardAction.NOTHING -> NothingCard((MainActivity.cardIDCounter++).toString(), title, color, icon, target)
+                    }
 //                MainActivity.addCard(card)
                     val intent = Intent(MainActivity.eventDataSetChanged)
                     intent.putExtra(MainActivity.cardExtra, card)
