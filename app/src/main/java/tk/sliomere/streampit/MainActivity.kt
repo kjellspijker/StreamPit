@@ -51,6 +51,8 @@ class MainActivity : AppCompatActivity() {
         lateinit var handler: Handler
 
         val listeningCards: HashMap<CardAction, ArrayList<Card>> = HashMap()
+
+        var OBS_STUDIO_MODE_ENABLED = true
     }
 
     private var columnCount: Int = 2

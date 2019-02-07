@@ -8,4 +8,5 @@
     <color name="colorRemovingCards">#d50000</color>
     <color name="colorMuted">#FF4040</color>
     <color name="colorCurrentScene">#B3721B</color>
+    <color name="colorSceneItemHidden">#000A25</color>
 </resources>

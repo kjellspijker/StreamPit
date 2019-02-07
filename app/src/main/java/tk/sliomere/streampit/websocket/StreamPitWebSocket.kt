@@ -11,6 +11,7 @@ import org.json.JSONObject
 import tk.sliomere.streampit.CardAction
 import tk.sliomere.streampit.MainActivity
 import tk.sliomere.streampit.cards.SwitchSceneCard
+import tk.sliomere.streampit.cards.ToggleVisibilityCard
 import tk.sliomere.streampit.obs.OBSHolder
 import java.net.URI
 import java.security.MessageDigest
@@ -70,6 +71,9 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
                     }
                 }
             })
+            this.sendMessage("GetStudioModeStatus", JSONObject(), callback = { msg: JSONObject ->
+                MainActivity.OBS_STUDIO_MODE_ENABLED = msg.getBoolean("studio-mode")
+            })
         } else {
             this.cardsReady = true
         }
@@ -106,22 +110,35 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
             //Event
             when (msg.getString("update-type")) {
                 "SceneItemVisibilityChanged" -> {
-                    val message = Message()
-                    val json = JSONObject()
-                    //TODO think about the handling of visibility changes. Dependent on scene-name & item-name
-//                    json.put("target", )
-//                    MainActivity.handler.sendMessage()
+                    if (MainActivity.listeningCards.containsKey(CardAction.TOGGLE_VISIBILITY)) {
+                        for (card in MainActivity.listeningCards[CardAction.TOGGLE_VISIBILITY]!!) {
+                            if (card is ToggleVisibilityCard) {
+                                card.onVisibilityUpdate(msg.getString("item-name")!!, msg.getBoolean("item-visible"))
+                            }
+                        }
+                    }
                 }
                 "SwitchScenes" -> {
                     val name = msg.getString("scene-name")
                     if (MainActivity.listeningCards.containsKey(CardAction.SWITCH_SCENE)) {
-                        val cards = MainActivity.listeningCards[CardAction.SWITCH_SCENE]!!
-                        for (card in cards) {
+                        for (card in MainActivity.listeningCards[CardAction.SWITCH_SCENE]!!) {
                             if (card is SwitchSceneCard) {
                                 card.onSceneUpdate(name)
                             }
                         }
+                        val sources = msg.getJSONArray("sources")!!
+                        for(i in 0 until sources.length()) {
+                            val source = sources.getJSONObject(i)
+                            for (card in MainActivity.listeningCards[CardAction.TOGGLE_VISIBILITY]!!) {
+                                if (card is ToggleVisibilityCard) {
+                                    card.onVisibilityUpdate(source.getString("name"), source.getBoolean("render"))
+                                }
+                            }
+                        }
                     }
+                }
+                "StudioModeSwitched" -> {
+                    MainActivity.OBS_STUDIO_MODE_ENABLED = msg.getBoolean("new-state")
                 }
             }
         }

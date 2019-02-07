@@ -45,4 +45,16 @@ class CardViewHolder(var view: View) : RecyclerView.ViewHolder(view) {
         icon.setColorFilter(colorFilter)
     }
 
+    fun toggleVisibility(visible: Boolean) {
+        val colorFilter: Int = if (visible) {
+            card.icon = "icon_visible"
+            view.resources.getColor(android.R.color.white, view.context.theme)
+        } else {
+            card.icon = "icon_hidden"
+            view.resources.getColor(R.color.colorSceneItemHidden, view.context.theme)
+        }
+        icon.setImageDrawable(view.context.resources.getDrawable(view.context.resources.getIdentifier(card.icon, "drawable", "tk.sliomere.streampit"), view.context.theme))
+        icon.setColorFilter(colorFilter)
+    }
+
 }
