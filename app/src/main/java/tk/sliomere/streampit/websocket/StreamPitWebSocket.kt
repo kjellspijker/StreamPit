@@ -40,7 +40,7 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
                 this.sendMessage("Authenticate", args, callback = { authMsg: JSONObject ->
                     if (authMsg.has("error")) {
                         val message = Message()
-                        message.obj  = MainActivity.eventAuthFailed
+                        message.obj = MainActivity.eventAuthFailed
                         MainActivity.handler.sendMessage(message)
                     } else {
                         authenticated = true
@@ -79,6 +79,12 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
                     if (card is ToggleVisibilityCard) {
                         card.reloadCard()
                     }
+                }
+            }
+
+            if (MainActivity.listeningCards.containsKey(CardAction.TOGGLE_MUTE)) {
+                for (card in MainActivity.listeningCards[CardAction.TOGGLE_MUTE]!!) {
+                    card.reloadCard()
                 }
             }
         } else {
@@ -134,7 +140,7 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
                             }
                         }
                         val sources = msg.getJSONArray("sources")!!
-                        for(i in 0 until sources.length()) {
+                        for (i in 0 until sources.length()) {
                             val source = sources.getJSONObject(i)
                             for (card in MainActivity.listeningCards[CardAction.TOGGLE_VISIBILITY]!!) {
                                 if (card is ToggleVisibilityCard) {
