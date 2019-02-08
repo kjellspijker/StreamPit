@@ -28,6 +28,7 @@ class CardViewHolder(var view: View) : RecyclerView.ViewHolder(view) {
     fun bindViewHolder(card: Card) {
         this.card = card
         this.card.vh = this
+        this.card.bindCompleted()
         title.setBackgroundColor(card.color)
         icon.setBackgroundColor(card.color)
         icon.setImageDrawable(view.context.resources.getDrawable(view.context.resources.getIdentifier(card.icon, "drawable", "tk.sliomere.streampit"), view.context.theme))

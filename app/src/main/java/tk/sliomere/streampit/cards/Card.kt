@@ -5,6 +5,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.Log
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import org.json.JSONObject
@@ -32,6 +33,7 @@ abstract class Card(val id: String, var name: String, var color: Int, var icon: 
     open fun onLongClickListener(context: Context) {
         reloadCard()
         Toast.makeText(vh.view.context, vh.view.context.resources.getString(R.string.card_status_updated), Toast.LENGTH_SHORT).show()
+        Log.d("StreamPit", "Ding")
     }
 
     open fun toJSON(): JSONObject {
@@ -65,6 +67,10 @@ abstract class Card(val id: String, var name: String, var color: Int, var icon: 
      *          this function reloads the card to the correct state
      */
     abstract fun reloadCard()
+
+    open fun bindCompleted() {
+
+    }
 
     companion object CREATOR : Parcelable.Creator<Card> {
         override fun createFromParcel(parcel: Parcel): Card {

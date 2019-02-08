@@ -46,7 +46,6 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
                         if (cardsReady) {
                             onReady()
                         }
-                        onConnectCallback.invoke()
                         this.sendMessage("GetSourcesList", JSONObject(), callback = { msg: JSONObject ->
                             obsHolder.parseSourcesList(msg.getJSONArray("sources"))
                         })
@@ -85,6 +84,8 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
                     card.reloadCard()
                 }
             }
+
+            onConnectCallback.invoke()
         } else {
             this.cardsReady = true
         }
@@ -158,6 +159,7 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
     override fun onError(ex: Exception?) {
         if (ex != null) {
             Log.d("StreamPit", "Error: " + ex.message)
+            ex.printStackTrace()
         }
     }
 

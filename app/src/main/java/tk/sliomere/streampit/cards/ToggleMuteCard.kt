@@ -22,21 +22,38 @@ class ToggleMuteCard(id: String, name: String, color: Int, icon: String, target:
         return true
     }
 
+    private var bindCallbackMsg: JSONObject? = null
+
     override fun reloadCard() {
         val args1 = JSONObject()
         args1.put("source", "Desktop Audio")
         MainActivity.webSocketClient.sendMessage("GetMute", args1, callback = { msg: JSONObject ->
-            val color: Int
-            icon = if (msg.getBoolean("muted")) {
-                color = vh.view.resources.getColor(R.color.colorMuted, vh.view.context.theme)
-                "icon_mute"
-            } else {
-                color = vh.view.resources.getColor(android.R.color.white, vh.view.context.theme)
-                "icon_volume"
+            try {
+                doReload(msg)
+            } catch (e: Exception) {
+                this.bindCallbackMsg = msg
             }
-            vh.icon.setImageDrawable(vh.view.context.resources.getDrawable(vh.view.context.resources.getIdentifier(icon, "drawable", "tk.sliomere.streampit"), vh.view.context.theme))
-            vh.icon.setColorFilter(color)
         })
+    }
+
+    override fun bindCompleted() {
+        if (bindCallbackMsg != null) {
+            doReload(bindCallbackMsg!!)
+            bindCallbackMsg = null
+        }
+    }
+
+    private fun doReload(msg: JSONObject) {
+        val color: Int
+        icon = if (msg.getBoolean("muted")) {
+            color = vh.view.resources.getColor(R.color.colorMuted, vh.view.context.theme)
+            "icon_mute"
+        } else {
+            color = vh.view.resources.getColor(android.R.color.white, vh.view.context.theme)
+            "icon_volume"
+        }
+        vh.icon.setImageDrawable(vh.view.context.resources.getDrawable(vh.view.context.resources.getIdentifier(icon, "drawable", "tk.sliomere.streampit"), vh.view.context.theme))
+        vh.icon.setColorFilter(color)
     }
 
 }
