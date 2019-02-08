@@ -2,7 +2,6 @@ package tk.sliomere.streampit.cards
 
 import android.content.Context
 import android.graphics.Color
-import android.util.Log
 import org.json.JSONObject
 import tk.sliomere.streampit.CardAction
 import tk.sliomere.streampit.MainActivity
@@ -21,7 +20,6 @@ class SwitchSceneCard(id: String, name: String, color: Int, icon: String, target
 
     override fun onClickListener(context: Context): Boolean {
         if (!super.onClickListener(context)) {
-            Log.d("StreamPit", "Switch Scene")
             val args = JSONObject()
             args.put("scene-name", target)
             MainActivity.webSocketClient.sendMessage("SetCurrentScene", args)

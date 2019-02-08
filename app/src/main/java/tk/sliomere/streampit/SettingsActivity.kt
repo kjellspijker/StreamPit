@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.util.Patterns
 import android.view.View
 import android.widget.Button
@@ -63,7 +62,6 @@ class SettingsActivity : AppCompatActivity() {
         val prefs = getSharedPreferences(MainActivity.PREF_NAME, Context.MODE_PRIVATE)
 //            prefs.edit().remove(MainActivity.PREF_IP).remove(MainActivity.PREF_PORT).apply()
         val ip = prefs.getString(MainActivity.PREF_IP, "")
-        Log.d("StreamPit", "ip: $ip")
         ipEditText.setText(ip)
         portEditText.setText(prefs.getInt(MainActivity.PREF_PORT, 4444).toString())
         passwordEditText.setText(prefs.getString(MainActivity.PREF_PASSWORD, ""))

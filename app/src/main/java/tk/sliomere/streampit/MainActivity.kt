@@ -7,7 +7,6 @@ import android.graphics.PorterDuff
 import android.os.Bundle
 import android.os.Handler
 import android.os.Message
-import android.util.Log
 import android.util.TypedValue
 import android.view.Display
 import android.view.Menu
@@ -72,7 +71,7 @@ class MainActivity : AppCompatActivity() {
 
         handler = Handler(Handler.Callback { msg: Message ->
             if (msg.obj is String) {
-                Log.d("StreamPit", "Handler: " + msg.obj)
+//                Log.d("StreamPit", "Handler: " + msg.obj)
                 if (msg.obj == eventAuthFailed) {
                     startActivityForResult(Intent(this, SettingsActivity::class.java).putExtra(authFailedExtra, true), MainActivity.requestCodeAuthFailed)
                 } else if (msg.obj == eventReconnectWebSocket) {
@@ -150,9 +149,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == requestCodeFirstSettings && resultCode ==  0) {
-            Log.d("StreamPit", "First Time Setup Completed... Connecting...")
             connectWebSocket()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        webSocketClient.onReady()
     }
 
     private fun saveCards() {
@@ -207,7 +210,7 @@ class MainActivity : AppCompatActivity() {
             editor.commit()
         }
         val json = JSONObject(prefs.getString(PREF_CARDS_JSON, "{}"))
-        Log.d("StreamPit", json.toString(4))
+//        Log.d("StreamPit", json.toString(4))
 
         val cards = json.getJSONObject("cards")
         for (id in cards.keys()) {
@@ -220,7 +223,6 @@ class MainActivity : AppCompatActivity() {
                  CardAction.SWITCH_SCENE -> SwitchSceneCard(id, card)
                  CardAction.NOTHING -> NothingCard(id, card)
             }
-            Log.d("StreamPit", cardObject.icon)
             idList.add(cardObject.id)
             cardList[cardObject.id.toInt()] = cardObject
             if (cardObject.id.toInt() >= cardIDCounter) {
@@ -308,7 +310,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setupIcons() {
-        Log.d("StreamPit", "SetupIcons")
         for (id in cardList.keys) {
             cardList[id]?.reloadCard()
         }

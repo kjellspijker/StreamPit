@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -40,13 +39,6 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
         setContentView(R.layout.activity_new_card)
         setSupportActionBar(toolbar)
 
-//        availableIcons.clear()
-//        for (field in R.drawable::class.java.fields) {
-//            if (field.name.startsWith("icon_")) {
-//                Log.d("StreamPit", field.name)
-//                availableIcons.add(field.name)
-//            }
-//        }
 
         icon = resources.getResourceEntryName(R.drawable.icon_play)
         color = resources.getColor(R.color.cardPrimary, this.theme)
@@ -110,7 +102,6 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
                     val intent = Intent(MainActivity.eventDataSetChanged)
                     intent.putExtra(MainActivity.cardExtra, card)
                     LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
-                    Log.d("StreamPit", "Title: " + titleEditText.text.toString())
                     finish()
                 }
                 true
@@ -125,7 +116,6 @@ class NewCardActivity : AppCompatActivity(), ColorPickerDialogListener {
 
     override fun onColorSelected(dialogId: Int, color: Int) {
         NewCardActivity.color = color
-        Log.d("StreamPit", "Color set to: #" + Integer.toHexString(color))
         cardIconImageBtn.setBackgroundColor(color)
         colorImageButton.setBackgroundColor(color)
     }

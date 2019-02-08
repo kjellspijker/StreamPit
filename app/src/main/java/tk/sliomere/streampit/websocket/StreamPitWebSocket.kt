@@ -30,7 +30,6 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
     private var cardsReady = false
 
     override fun onOpen(handshakedata: ServerHandshake?) {
-        Log.d("StreamPit", "WebSocket opened")
         this.sendMessage("GetAuthRequired", JSONObject(), callback = { msg: JSONObject ->
             if (msg.getBoolean("authRequired")) {
                 val authResponse = calculateAuthResponse(password, msg.getString("salt"), msg.getString("challenge"))
@@ -58,7 +57,6 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
     }
 
     fun onReady() {
-        Log.d("StreamPit", "OnReady")
         if (authenticated) {
             this.cardsReady = false
             this.sendMessage("GetCurrentScene", JSONObject(), callback = { msg: JSONObject ->
@@ -103,8 +101,8 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
     }
 
     override fun onMessage(message: String?) {
-        Log.d("StreamPit", "Message received: ")
-        Log.d("StreamPit", message)
+//        Log.d("StreamPit", "Message received: ")
+//        Log.d("StreamPit", message)
         val msg = JSONObject(message)
         if (msg.has("status") && msg.getString("status") == "error") {
             Log.d("StreamPit", "An error occured: " + msg.getString("error"))
@@ -170,7 +168,6 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
         val mid = messageIdCounter++
         args.put("request-type", requestType)
         args.put("message-id", mid.toString())
-        Log.d("StreamPit", "Sending: $args")
         this.send(args.toString())
     }
 
@@ -181,7 +178,7 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
         val mid = messageIdCounter++
         args.put("request-type", requestType)
         args.put("message-id", mid.toString())
-        Log.d("StreamPit", args.toString())
+//        Log.d("StreamPit", args.toString())
         this.callbacks[mid.toString()] = callback
         this.send(args.toString())
     }

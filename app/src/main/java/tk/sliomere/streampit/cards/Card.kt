@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
 import android.widget.Toast
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import org.json.JSONObject
@@ -21,7 +20,6 @@ abstract class Card(val id: String, var name: String, var color: Int, var icon: 
     constructor(id: String, jsonObject: JSONObject) : this(id, jsonObject.getString("name")!!, Color.parseColor(jsonObject.getString("color")!!), jsonObject.getString("icon"), CardAction.valueOf(jsonObject.getString("cardAction")), jsonObject.getString("target"))
 
     open fun onClickListener(context: Context): Boolean {
-        Log.d("StreamPit", "Click Listener")
         if (MainActivity.removingCard) {
             val intent = Intent(MainActivity.eventRemoveCard)
             intent.putExtra(MainActivity.cardIDExtra, id)

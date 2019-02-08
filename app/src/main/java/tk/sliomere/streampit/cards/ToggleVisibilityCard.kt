@@ -2,7 +2,6 @@ package tk.sliomere.streampit.cards
 
 import android.content.Context
 import android.graphics.Color
-import android.util.Log
 import org.json.JSONObject
 import tk.sliomere.streampit.CardAction
 import tk.sliomere.streampit.MainActivity
@@ -28,7 +27,6 @@ class ToggleVisibilityCard(id: String, name: String, color: Int, icon: String, t
 
     override fun onClickListener(context: Context): Boolean {
         if (!super.onClickListener(context)) {
-            Log.d("StreamPit", "Toggle Visibility")
             var args = JSONObject()
             args.put("item", target)
             MainActivity.webSocketClient.sendMessage("GetSceneItemProperties", args, callback = { msg: JSONObject ->
@@ -37,14 +35,11 @@ class ToggleVisibilityCard(id: String, name: String, color: Int, icon: String, t
                 args.put("visible", !msg.getBoolean("visible"))
                 MainActivity.webSocketClient.sendMessage("SetSceneItemProperties", args)
                 if (MainActivity.OBS_STUDIO_MODE_ENABLED) {
-                    Log.d("StreamPit", "STUDIO_ENABLED, WEIRD SHIT")
                     MainActivity.webSocketClient.sendMessage("GetCurrentScene", JSONObject(), callback = { msg: JSONObject ->
                         args = JSONObject()
                         args.put("scene-name", msg.getString("name"))
                         MainActivity.webSocketClient.sendMessage("SetCurrentScene", args)
                     })
-                } else {
-                    Log.d("StreamPit", "STUDIO_DISABLED, NO WEIRD SHIT")
                 }
             })
         }
