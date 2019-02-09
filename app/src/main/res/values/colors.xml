@@ -2,11 +2,13 @@
 <resources>
     <color name="colorPrimary">#17242d</color>
     <color name="colorPrimaryDark">#17242D</color>
-    <color name="colorAccent">#7b5cc2</color>
+    <color name="colorAccent">#7B5CC2</color>
     <color name="colorRedAccent">#d50000</color>
     <color name="cardPrimary">#2e383f</color>
     <color name="colorRemovingCards">#d50000</color>
     <color name="colorMuted">#FF4040</color>
     <color name="colorCurrentScene">#B3721B</color>
     <color name="colorSceneItemHidden">#000A25</color>
+    <color name="normal_target_text_view">#FFFFFF</color>
+    <color name="faded_target_text_view">#B1B1B1</color>
 </resources>

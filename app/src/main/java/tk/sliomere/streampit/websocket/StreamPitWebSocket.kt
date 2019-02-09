@@ -141,9 +141,11 @@ class StreamPitWebSocket(uri: URI, var password: String, var onConnectCallback: 
                         val sources = msg.getJSONArray("sources")!!
                         for (i in 0 until sources.length()) {
                             val source = sources.getJSONObject(i)
-                            for (card in MainActivity.listeningCards[CardAction.TOGGLE_VISIBILITY]!!) {
-                                if (card is ToggleVisibilityCard) {
-                                    card.onVisibilityUpdate(source.getString("name"), source.getBoolean("render"))
+                            if (MainActivity.listeningCards.containsKey(CardAction.TOGGLE_VISIBILITY)) {
+                                for (card in MainActivity.listeningCards[CardAction.TOGGLE_VISIBILITY]!!) {
+                                    if (card is ToggleVisibilityCard) {
+                                        card.onVisibilityUpdate(source.getString("name"), source.getBoolean("render"))
+                                    }
                                 }
                             }
                         }

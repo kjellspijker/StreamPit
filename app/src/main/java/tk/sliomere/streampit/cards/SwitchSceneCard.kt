@@ -28,23 +28,44 @@ class SwitchSceneCard(id: String, name: String, color: Int, icon: String, target
         return true
     }
 
+    private var bindCallbackMsg: JSONObject? = null
+
+    override fun bindCompleted() {
+        if (bindCallbackMsg != null) {
+            doReload(bindCallbackMsg!!)
+            bindCallbackMsg = null
+        }
+    }
+
+    private fun doReload(msg: JSONObject) {
+        val cl = if (this.target == msg.getString("name")) {
+            vh.view.resources.getColor(R.color.colorCurrentScene, vh.view.context.theme)
+        } else {
+            vh.view.resources.getColor(android.R.color.white, vh.view.context.theme)
+        }
+        vh.icon.setColorFilter(cl)
+    }
+
     override fun reloadCard() {
         //TODO make this unnecessary
         MainActivity.webSocketClient.sendMessage("GetCurrentScene", JSONObject(), callback = { msg: JSONObject ->
-            color = if (this.target == msg.getString("name")) {
-                vh.view.resources.getColor(R.color.colorCurrentScene, vh.view.context.theme)
-            } else {
-                vh.view.resources.getColor(android.R.color.white, vh.view.context.theme)
+            try {
+                doReload(msg)
+            } catch (e: Exception) {
+                this.bindCallbackMsg = msg
             }
-            vh.icon.setColorFilter(color)
         })
     }
 
     fun onSceneUpdate(name: String) {
-        if (this.target == name) {
-            vh.icon.setColorFilter(vh.view.resources.getColor(R.color.colorCurrentScene, vh.view.context.theme))
-        } else {
-            vh.icon.setColorFilter(vh.view.resources.getColor(android.R.color.white, vh.view.context.theme))
+        try {
+            if (this.target == name) {
+                vh.icon.setColorFilter(vh.view.resources.getColor(R.color.colorCurrentScene, vh.view.context.theme))
+            } else {
+                vh.icon.setColorFilter(vh.view.resources.getColor(android.R.color.white, vh.view.context.theme))
+            }
+        } catch (e: Exception) {
+
         }
     }
 }

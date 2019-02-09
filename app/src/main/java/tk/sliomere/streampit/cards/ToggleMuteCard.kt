@@ -44,16 +44,16 @@ class ToggleMuteCard(id: String, name: String, color: Int, icon: String, target:
     }
 
     private fun doReload(msg: JSONObject) {
-        val color: Int
+        val cl: Int
         icon = if (msg.getBoolean("muted")) {
-            color = vh.view.resources.getColor(R.color.colorMuted, vh.view.context.theme)
+            cl = vh.view.resources.getColor(R.color.colorMuted, vh.view.context.theme)
             "icon_mute"
         } else {
-            color = vh.view.resources.getColor(android.R.color.white, vh.view.context.theme)
+            cl = vh.view.resources.getColor(android.R.color.white, vh.view.context.theme)
             "icon_volume"
         }
         vh.icon.setImageDrawable(vh.view.context.resources.getDrawable(vh.view.context.resources.getIdentifier(icon, "drawable", "tk.sliomere.streampit"), vh.view.context.theme))
-        vh.icon.setColorFilter(color)
+        vh.icon.setColorFilter(cl)
     }
 
 }

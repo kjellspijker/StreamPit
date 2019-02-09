@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">StreamPit</string>
     <string name="action_settings">Settings</string>
+    <string name="action_save">Save</string>
     <string name="card_icon">Card Icon</string>
     <string name="add_new_card">Add New Card</string>
     <string name="title_activity_new_card">Add New Card</string>
@@ -26,4 +27,7 @@
     <string name="password">Please enter the password of the websocket</string>
     <string name="card_status_updated">Card status updated!</string>
     <string name="card_target">Please enter the name of the target</string>
+    <string name="choose_target_of_card">Choose the target of the card</string>
+    <string name="no_target_chosen">No target chosen!</string>
+    <string name="no_target_required">No target required!</string>
 </resources>
